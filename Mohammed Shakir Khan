@@ -1,0 +1,34 @@
+# 🛠️ North Region - Asset & Tools Inventory Dashboard
+
+This repository contains the interactive Asset Management and Tools Tracking system for the **North Region Team**. 
+
+## 🚀 Live Dashboard
+You can access the live tracking system here:
+👉 **[https://shakirsir59.github.io/North-Tools-Inventory/](https://shakirsir59.github.io/North-Tools-Inventory/)**
+
+---
+
+## ✨ Key Features
+* **Live Inventory Analytics:** Dynamic Bar and Donut charts showing real-time distribution of laptops, SIM cards, and mobile devices.
+* **Granular Tracking:** Every asset is mapped with its specific Serial Number, IMEI, or Mobile Number based on actual records.
+* **Auto-Duplicate Detector:** Built-in conflict engine that automatically flags an alert if a unique asset (SIM/Serial) is mistakenly assigned to multiple users.
+* **Interactive Admin Controls:** Easily Add, Edit, or Delete team members and tool shuffles directly from the UI without changing the backend code.
+
+---
+
+## 👥 Covered Team Members
+1. Majid Mubarak Mohammed
+2. Amer Mohammed
+3. Yasir Nadeem
+4. Saeed Iqbal
+5. Muhammad Sajawal
+6. Fuaad Alnakhli
+7. Majed AlHarbi
+8. Naveed Ahmed
+
+---
+
+## 🛠️ Technology Stack
+* **Frontend:** HTML5, Tailwind CSS (for modern UI styling)
+* **Charts Engine:** Chart.js (for real-time data visualization)
+* **Data Storage:** Browser LocalStorage (retains changes locally upon layout updates)
