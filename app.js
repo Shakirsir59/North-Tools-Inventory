@@ -103,14 +103,13 @@ const defaultTeam = [
     }
 ];
 
-let teamData = JSON.parse(localStorage.getItem('northInventorySystemV3')) || defaultTeam;
+let teamData = JSON.parse(localStorage.getItem('northInventorySystemV4')) || defaultTeam;
 let editId = null;
 let barChart, donutChart;
 
 function detectConflicts() {
     let serialMap = {};
     let conflicts = [];
-
     teamData.forEach(member => {
         member.tools.forEach(tool => {
             let s = tool.serial ? tool.serial.trim() : '';
@@ -120,7 +119,6 @@ function detectConflicts() {
             }
         });
     });
-
     for (let serial in serialMap) {
         if (serialMap[serial].length > 1) {
             conflicts.push({ serial: serial, owners: serialMap[serial] });
@@ -132,17 +130,15 @@ function detectConflicts() {
 function renderDashboard() {
     const conflictBox = document.getElementById('conflictAlertSection');
     const conflicts = detectConflicts();
-    
     if (conflicts.length > 0) {
         conflictBox.classList.remove('hidden');
         let html = '';
         conflicts.forEach(c => {
-            html += `
-                <div class="flex flex-wrap items-center gap-2 bg-red-50 border border-red-200 p-3 rounded-lg text-xs text-red-700">
-                    <span class="font-bold">⚠️ DUPLICATE DETECTED:</span> 
-                    <span class="bg-red-600 text-white px-2 py-0.5 rounded font-mono">${c.serial}</span> 
-                    <span>assigned to:</span> <span class="font-semibold">${c.owners.join(' & ')}</span>
-                </div>`;
+            html += `<div class="flex flex-wrap items-center gap-2 bg-red-50 border border-red-200 p-3 rounded-lg text-xs text-red-700">
+                <span class="font-bold">⚠️ DUPLICATE DETECTED:</span> 
+                <span class="bg-red-600 text-white px-2 py-0.5 rounded font-mono">${c.serial}</span> 
+                <span>assigned to:</span> <span class="font-semibold">${c.owners.join(' & ')}</span>
+            </div>`;
         });
         conflictBox.innerHTML = html;
     } else {
@@ -151,33 +147,29 @@ function renderDashboard() {
 
     const grid = document.getElementById('teamGrid');
     grid.innerHTML = '';
-
     teamData.forEach(member => {
         let itemsHtml = '';
         member.tools.forEach(t => {
-            itemsHtml += `
-                <div class="bg-gray-50 border border-gray-200 p-2 rounded-lg text-xs">
-                    <div class="font-medium text-gray-700">${t.type}: <span class="text-blue-600 font-semibold">${t.name}</span></div>
-                    <div class="text-[10px] text-gray-400 font-mono mt-0.5">S/N or IMEI: ${t.serial}</div>
-                </div>`;
-        });
-
-        grid.innerHTML += `
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
-                <div class="flex justify-between items-center pb-2 border-b border-gray-100">
-                    <h4 class="font-bold text-gray-800 text-sm">${member.name}</h4>
-                    <div class="flex gap-2">
-                        <button onclick="editMember(${member.id})" class="text-blue-600 hover:text-blue-800 text-xs font-semibold cursor-pointer">Edit</button>
-                        <button onclick="deleteMember(${member.id})" class="text-red-500 hover:text-red-700 text-xs font-semibold cursor-pointer">Del</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 gap-2">${itemsHtml}</div>
+            itemsHtml += `<div class="bg-gray-50 border border-gray-200 p-2 rounded-lg text-xs">
+                <div class="font-medium text-gray-700">${t.type}: <span class="text-blue-600 font-semibold">${t.name}</span></div>
+                <div class="text-[10px] text-gray-400 font-mono mt-0.5">S/N or IMEI: ${t.serial}</div>
             </div>`;
+        });
+        grid.innerHTML += `<div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                <h4 class="font-bold text-gray-800 text-sm">${member.name}</h4>
+                <div class="flex gap-2">
+                    <button onclick="editMember(${member.id})" class="text-blue-600 hover:text-blue-800 text-xs font-semibold cursor-pointer">Edit</button>
+                    <button onclick="deleteMember(${member.id})" class="text-red-500 hover:text-red-700 text-xs font-semibold cursor-pointer">Del</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 gap-2">${itemsHtml}</div>
+        </div>`;
     });
     updateCharts();
 }
 
-function editMember(id) {
+window.editMember = function(id) {
     editId = id;
     const member = teamData.find(m => m.id === id);
     document.getElementById('modalTitle').innerText = "Edit Assets: " + member.name;
@@ -186,7 +178,7 @@ function editMember(id) {
     document.getElementById('memberModal').classList.remove('hidden');
 }
 
-function showAddModal() {
+window.showAddModal = function() {
     editId = null;
     document.getElementById('modalTitle').innerText = "Add New Team Member";
     document.getElementById('memberName').value = '';
@@ -194,15 +186,14 @@ function showAddModal() {
     document.getElementById('memberModal').classList.remove('hidden');
 }
 
-function closeModal() {
+window.closeModal = function() {
     document.getElementById('memberModal').classList.add('hidden');
 }
 
-function saveMember() {
+window.saveMember = function() {
     const name = document.getElementById('memberName').value;
     const toolsText = document.getElementById('memberTools').value;
     if (!name || !toolsText) return alert("Fields cannot be empty");
-
     let parsedTools = [];
     toolsText.split('\n').forEach(line => {
         if(line.trim()){
@@ -210,7 +201,6 @@ function saveMember() {
             parsedTools.push({ type: parts[0]||'Tool', name: parts[1]||'Device', serial: parts[2]||'N/A' });
         }
     });
-
     if (editId) {
         const index = teamData.findIndex(m => m.id === editId);
         teamData[index].name = name;
@@ -218,16 +208,15 @@ function saveMember() {
     } else {
         teamData.push({ id: Date.now(), name, tools: parsedTools });
     }
-
-    localStorage.setItem('northInventorySystemV3', JSON.stringify(teamData));
+    localStorage.setItem('northInventorySystemV4', JSON.stringify(teamData));
     closeModal();
     renderDashboard();
 }
 
-function deleteMember(id) {
+window.deleteMember = function(id) {
     if (confirm("Are you sure?")) {
         teamData = teamData.filter(m => m.id !== id);
-        localStorage.setItem('northInventorySystemV3', JSON.stringify(teamData));
+        localStorage.setItem('northInventorySystemV4', JSON.stringify(teamData));
         renderDashboard();
     }
 }
@@ -237,7 +226,6 @@ function updateCharts() {
     const ctxDonut = document.getElementById('donutChart');
     if (barChart) barChart.destroy();
     if (donutChart) donutChart.destroy();
-
     let counts = { SIM: 0, Mobile: 0, Laptop: 0, Others: 0 };
     teamData.forEach(m => m.tools.forEach(t => {
         let type = t.type.toUpperCase();
@@ -246,9 +234,7 @@ function updateCharts() {
         else if(type.includes('LAPTOP')) counts.Laptop++;
         else counts.Others++;
     }));
-
     const dataVals = [counts.SIM, counts.Mobile, counts.Laptop, counts.Others];
-
     barChart = new Chart(ctxBar, {
         type: 'bar',
         data: {
@@ -257,7 +243,6 @@ function updateCharts() {
         },
         options: { responsive: true, plugins: { legend: { display: false } } }
     });
-
     donutChart = new Chart(ctxDonut, {
         type: 'doughnut',
         data: {
@@ -267,5 +252,4 @@ function updateCharts() {
         options: { responsive: true, plugins: { legend: { position: 'right' } }, cutout: '70%' }
     });
 }
-
 window.onload = renderDashboard;
