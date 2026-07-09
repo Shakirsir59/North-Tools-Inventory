@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>North Region Ultimate Inventory System</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-6 font-sans antialiased text-slate-800">
 
@@ -66,17 +65,15 @@
         <div id="conflictAlertSection" class="space-y-2 hidden"></div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-2">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Granular Handset & Laptop Models Allocation</h3>
-                <div class="relative w-full h-64 flex items-center justify-center">
-                    <canvas id="modelChart"></canvas>
-                </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Telecom Models Deployment Matrix</h3>
+                <div id="telecomModelStats" class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                    </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-2">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Rigger Deployment & Safety Equipment Matrix</h3>
-                <div class="relative w-full h-64 flex items-center justify-center">
-                    <canvas id="riggerChart"></canvas>
-                </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Rigger Field Gear Stock Inventory</h3>
+                <div id="riggerGearStats" class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                    </div>
             </div>
         </div>
 
@@ -277,10 +274,9 @@
         spanner_17: "Spanner 17", spanner_19: "Spanner 19", inverter: "Car Inverter"
     };
 
-    let teamData = JSON.parse(localStorage.getItem('northRegionMasterV5')) || defaultTeam;
+    let teamData = JSON.parse(localStorage.getItem('northRegionMasterV6')) || defaultTeam;
     let currentFilter = 'all';
     let editId = null;
-    let chartA, chartB;
 
     function setFilter(type) {
         currentFilter = type;
@@ -314,7 +310,7 @@
             const tIdx = teamData[mIdx].tools.findIndex(t => t.serial === assetSerial);
             if(tIdx !== -1) {
                 teamData[mIdx].tools[tIdx].status = teamData[mIdx].tools[tIdx].status === 'Working' ? 'Issue' : 'Working';
-                localStorage.setItem('northRegionMasterV5', JSON.stringify(teamData));
+                localStorage.setItem('northRegionMasterV6', JSON.stringify(teamData));
                 renderDashboard();
             }
         });
@@ -344,7 +340,6 @@
         } else { cBox.classList.add('hidden'); }
 
         teamData.forEach(member => {
-            // Compute Global Counts
             member.tools.forEach(t => {
                 if(t.type === 'SIM') cSims++;
                 if(t.type === 'Mobile') cMobs++;
@@ -353,7 +348,6 @@
             Object.values(member.rigger).forEach(v => { if(v === 'Old' || v === 'Missing') cIssues++; });
             if(member.remarks.toLowerCase().includes('need') || member.remarks.toLowerCase().includes('missing')) cIssues++;
 
-            // Match filters & search queries
             let matchesSearch = member.name.toLowerCase().includes(query) || member.remarks.toLowerCase().includes(query);
             let hasTelecom = false; let hasRigger = false; let hasIssue = false;
 
@@ -389,7 +383,6 @@
                 }
             }
 
-            // Route view filter filters
             if(currentFilter === 'telecom' && !hasTelecom) return;
             if(currentFilter === 'rigger' && !hasRigger) return;
             if(currentFilter === 'issues' && !hasIssue) return;
@@ -428,23 +421,25 @@
             </div>`;
         });
 
-        // Set Top Display Metrics
         document.getElementById('statMembers').innerText = teamData.length;
         document.getElementById('statSims').innerText = cSims;
         document.getElementById('statMobiles').innerText = cMobs;
         document.getElementById('statIssues').innerText = cIssues;
 
-        updateCharts();
+        updateNativeMetrics();
     }
 
-    function updateCharts() {
+    // NATIVE HTML/CSS REPLACEMENT FOR CHARTJS
+    function updateNativeMetrics() {
         let models = {};
         let riggerCounts = { "Safety Belt": 0, "Safety Shoe": 0, "Safety Vest": 0, "Safety Helmet": 0, "Car Inverter": 0 };
+        let maxModelVal = 1; let maxRiggerVal = 1;
 
         teamData.forEach(m => {
             m.tools.forEach(t => {
                 if(['Mobile', 'Laptop'].includes(t.type)) {
                     models[t.name] = (models[t.name] || 0) + 1;
+                    if(models[t.name] > maxModelVal) maxModelVal = models[t.name];
                 }
             });
             if(m.rigger.safety_belt !== "0") riggerCounts["Safety Belt"]++;
@@ -454,40 +449,41 @@
             if(m.rigger.inverter !== "0") riggerCounts["Car Inverter"]++;
         });
 
-        // Chart A: Hardware Models Breakdown
-        const canvasA = document.getElementById('modelChart');
-        if(!canvasA) return;
-        const ctxA = canvasA.getContext('2d');
-        if(chartA) chartA.destroy();
-        chartA = new Chart(ctxA, {
-            type: 'bar',
-            data: {
-                labels: Object.keys(models),
-                datasets: [{
-                    label: 'Units Distributed',
-                    data: Object.values(models),
-                    backgroundColor: ['#3B82F6', '#EC4899', '#8B5CF6', '#10B981', '#F59E0B', '#64748B'],
-                    borderRadius: 6, barThickness: 20
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
+        Object.values(riggerCounts).forEach(v => { if(v > maxRiggerVal) maxRiggerVal = v; });
 
-        // Chart B: Rigger Tools Matrix
-        const canvasB = document.getElementById('riggerChart');
-        if(!canvasB) return;
-        const ctxB = canvasB.getContext('2d');
-        if(chartB) chartB.destroy();
-        chartB = new Chart(ctxB, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(riggerCounts),
-                datasets: [{
-                    data: Object.values(riggerCounts),
-                    backgroundColor: ['#3B82F6', '#EC4899', '#8B5CF6', '#F59E0B', '#10B981']
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } }, cutout: '70%' }
+        // Build Telecom Native Progress Bars
+        const telContainer = document.getElementById('telecomModelStats');
+        telContainer.innerHTML = '';
+        Object.keys(models).forEach(k => {
+            let pct = (models[k] / maxModelVal) * 100;
+            telContainer.innerHTML += `<div class="space-y-1">
+                <div class="flex justify-between text-xs font-bold text-slate-700">
+                    <span>${k}</span>
+                    <span>${models[k]} Units</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                </div>
+            </div>`;
+        });
+        if(Object.keys(models).length === 0) {
+            telContainer.innerHTML = '<p class="text-xs text-slate-400 italic">No Distributed Models Tracked.</p>';
+        }
+
+        // Build Rigger Native Progress Bars
+        const rigContainer = document.getElementById('riggerGearStats');
+        rigContainer.innerHTML = '';
+        Object.keys(riggerCounts).forEach(k => {
+            let pct = (riggerCounts[k] / maxRiggerVal) * 100;
+            rigContainer.innerHTML += `<div class="space-y-1">
+                <div class="flex justify-between text-xs font-bold text-slate-700">
+                    <span>${k}</span>
+                    <span>${riggerCounts[k]} Staff Inspected</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-pink-600 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                </div>
+            </div>`;
         });
     }
 
@@ -553,13 +549,13 @@
             teamData.push({ id: Date.now(), name, remarks, tools: parsedTools, rigger: riggerObj });
         }
 
-        localStorage.setItem('northRegionMasterV5', JSON.stringify(teamData));
+        localStorage.setItem('northRegionMasterV6', JSON.stringify(teamData));
         closeModal(); renderDashboard();
     }
 
     window.deleteMember = function(id) {
         teamData = teamData.filter(m => m.id !== id);
-        localStorage.setItem('northRegionMasterV5', JSON.stringify(teamData));
+        localStorage.setItem('northRegionMasterV6', JSON.stringify(teamData));
         renderDashboard();
     }
 
@@ -584,10 +580,8 @@
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
-    // Securely trigger layout lifecycle
-    window.addEventListener('DOMContentLoaded', () => {
-        renderDashboard();
-    });
+    // Direct initialization without any lifecycle delay
+    renderDashboard();
     </script>
 </body>
 </html>
