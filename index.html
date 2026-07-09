@@ -3,57 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>North Region Asset Tracker</title>
+    <title>North Region Ultimate Inventory System</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100 p-6 font-sans">
+<body class="bg-slate-100 p-4 md:p-6 font-sans antialiased text-slate-800">
+
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-                <h1 class="text-xl font-bold text-gray-800">🛠️ North Region Inventory System</h1>
-                <p class="text-xs text-gray-500">Live Asset Tracking & Auto-Duplicate Detection</p>
+                <h1 class="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+                    🛠️ North Region Unified Master Tracker
+                </h1>
+                <p class="text-xs text-slate-500 font-medium">Telecom Infrastructure Assets & Rigger Safety Tool Engine</p>
             </div>
-            <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow transition cursor-pointer">
-                + Add New Member
-            </button>
+            <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                <button onclick="showAddModal()" class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition cursor-pointer">
+                    + Add New Member
+                </button>
+                <button onclick="exportToCSV()" class="flex-1 md:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition cursor-pointer">
+                    📄 Export Excel
+                </button>
+                <button onclick="window.print()" class="flex-1 md:flex-none bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition cursor-pointer">
+                    🖨️ Print PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">Total Field Personnel</div>
+                <div id="statMembers" class="text-2xl font-black text-slate-900 mt-1">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">Active SIM Cards</div>
+                <div id="statSims" class="text-2xl font-black text-blue-600 mt-1">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">Tracked Handsets</div>
+                <div id="statMobiles" class="text-2xl font-black text-pink-600 mt-1">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-[10px] font-bold text-red-500 uppercase">🔴 Flagged Deficiencies</div>
+                <div id="statIssues" class="text-2xl font-black text-red-600 mt-1">0</div>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-sm">🔍</span>
+                <input type="text" id="globalSearch" oninput="renderDashboard()" placeholder="Search via Serial, IMEI, Phone Number, Device Model, or Employee Name..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium placeholder-slate-400 transition">
+            </div>
+            <div class="flex flex-wrap gap-1.5 pb-0.5 border-t border-slate-100 pt-3">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-slate-900 text-white">All Infrastructure Data</button>
+                <button onclick="setFilter('telecom')" id="filter-telecom" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200">Telecom Hardware Only</button>
+                <button onclick="setFilter('rigger')" id="filter-rigger" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200">Rigger & Safety Gear Only</button>
+                <button onclick="setFilter('issues')" id="filter-issues" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 text-red-600">Deficient Records (🔴)</button>
+            </div>
         </div>
 
         <div id="conflictAlertSection" class="space-y-2 hidden"></div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <canvas id="barChart" class="max-h-56"></canvas>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Granular Handset & Laptop Models Allocation</h3>
+                <div class="relative w-full h-64 flex items-center justify-center">
+                    <canvas id="modelChart"></canvas>
+                </div>
             </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <canvas id="donutChart" class="max-h-56"></canvas>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Rigger Deployment & Safety Equipment Matrix</h3>
+                <div class="relative w-full h-64 flex items-center justify-center">
+                    <canvas id="riggerChart"></canvas>
+                </div>
             </div>
         </div>
 
         <div>
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">NORTH TEAM MEMBERS</h2>
-            <div id="teamGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">NORTH TEAM ASSET ASSIGNMENT LEDGERS</h2>
+            <div id="teamGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
+
     </div>
 
-    <div id="memberModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
-            <h3 id="modalTitle" class="text-base font-bold text-gray-800">Edit Inventory Details</h3>
-            <div class="space-y-3">
+    <div id="memberModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <h3 id="modalTitle" class="text-lg font-black text-slate-900">Manage Core Inventory Mapping</h3>
+            
+            <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 mb-1">Employee Name</label>
-                    <input type="text" id="memberName" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-blue-500">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Employee Structural Name</label>
+                    <input type="text" id="memberName" class="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
+                
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 mb-1">Asset Allocation Table</label>
-                    <textarea id="memberTools" rows="6" class="w-full font-mono border border-gray-300 rounded-lg p-2 text-xs focus:outline-blue-500" placeholder="Type|DeviceName|SerialNumber"></textarea>
-                    <p class="text-[10px] text-gray-400 mt-1">Format: Type|Device Name|Serial or IMEI<br>Example: SIM|Zain SIM|592446843</p>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">IT & Telecom Records (Pipeline Engine)</label>
+                    <textarea id="memberTools" rows="5" class="w-full font-mono bg-slate-900 text-emerald-400 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 leading-relaxed" placeholder="Type|DeviceName|SerialOrIMEI|Status"></textarea>
+                    <p class="text-[10px] text-slate-400 mt-1 font-medium">Format: <span class="bg-slate-100 px-1 py-0.5 rounded text-slate-600">Type|Model Name|Serial-IMEI|Working</span><br>Status values: <span class="text-emerald-600 font-bold">Working</span> or <span class="text-red-600 font-bold">Issue</span></p>
+                </div>
+
+                <div class="border-t border-slate-100 pt-3">
+                    <label class="block text-xs font-bold text-slate-500 mb-2">Rigger Tooling Checklists</label>
+                    <div id="riggerChecklistForm" class="grid grid-cols-2 gap-3 text-xs">
+                        </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Global Exceptions / Remarks</label>
+                    <input type="text" id="memberRemarks" placeholder="e.g. Need Tools Bag and Laptop Bag" class="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
-            <div class="flex justify-end gap-2 pt-1">
-                <button onclick="closeModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg transition cursor-pointer">Cancel</button>
-                <button onclick="saveMember()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition cursor-pointer">Update & Re-Scan</button>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button onclick="closeModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-4 py-2.5 rounded-xl transition cursor-pointer">Cancel Matrix</button>
+                <button onclick="saveMember()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition cursor-pointer">Compile Changes</button>
             </div>
         </div>
     </div>
@@ -63,255 +127,446 @@
         {
             id: 1,
             name: "Majid Mubarak Mohammed",
+            remarks: "Working",
             tools: [
-                { type: "Laptop", name: "HP Z Book", serial: "5CG2421T3F" },
-                { type: "Ethernet Cable", name: "Type C", serial: "ROHS" },
-                { type: "Laptop Charger", name: "HP Charger", serial: "4CH24205WL" },
-                { type: "Laptop Bag", name: "HP Bag", serial: "NA" },
-                { type: "SIM", name: "Zain SIM", serial: "592446843" },
-                { type: "SIM", name: "Zain SIM", serial: "592448980" }
-            ]
+                { type: "Laptop", name: "HP Z Book", serial: "5CG2421T3F", status: "Working" },
+                { type: "Cable", name: "Ethernet Type C", serial: "ROHS", status: "Working" },
+                { type: "Charger", name: "HP Laptop Charger", serial: "4CH24205WL", status: "Working" },
+                { type: "Laptop Bag", name: "HP Bag", serial: "NA", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446843", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592448980", status: "Working" }
+            ],
+            rigger: { safety_belt: "0", safety_shoe: "0", safety_vest: "0", safety_helmet: "0", compass: "0", gloves: "0", spanner_17: "0", spanner_19: "0", inverter: "0" }
         },
         {
             id: 2,
             name: "Amer Mohammed",
+            remarks: "Working",
             tools: [
-                { type: "Laptop", name: "HP Z Book", serial: "5CG2421T85" },
-                { type: "Laptop Charger", name: "65W Charger", serial: "N/A" },
-                { type: "Laptop Bag", name: "HP Bag", serial: "N/A" },
-                { type: "SIM", name: "Zain SIM", serial: "592446758" },
-                { type: "SIM", name: "Zain SIM", serial: "592448050" }
-            ]
+                { type: "Laptop", name: "HP Z Book", serial: "5CG2421T85", status: "Working" },
+                { type: "Charger", name: "65W Charger", serial: "N/A", status: "Working" },
+                { type: "Laptop Bag", name: "HP Bag", serial: "N/A", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446758", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592448050", status: "Working" }
+            ],
+            rigger: { safety_belt: "0", safety_shoe: "0", safety_vest: "0", safety_helmet: "0", compass: "0", gloves: "0", spanner_17: "0", spanner_19: "0", inverter: "0" }
         },
         {
             id: 3,
             name: "Yasir Nadeem",
+            remarks: "Working",
             tools: [
-                { type: "Laptop", name: "HP ProBook", serial: "5CG0462CX0" },
-                { type: "Laptop Charger", name: "HP Charger", serial: "N/A" },
-                { type: "Car Inverter", name: "Inverter", serial: "N/A" },
-                { type: "SIM", name: "Zain SIM", serial: "592446789" },
-                { type: "SIM", name: "Zain SIM", serial: "592448903" },
-                { type: "SIM", name: "Zain SIM", serial: "580174700" },
-                { type: "SIM", name: "Zain SIM", serial: "592446967" },
-                { type: "USB Hub", name: "Kingston", serial: "N/A" },
-                { type: "Mobile", name: "Huawei P40", serial: "863725044378535" },
-                { type: "Mobile", name: "Huawei P40", serial: "863725044379731" },
-                { type: "Mobile", name: "Huawei P40", serial: "863725044539847" },
-                { type: "Mobile", name: "Samsung S9", serial: "354663104805962" },
-                { type: "Mobile", name: "Samsung S9", serial: "354663104812380" },
-                { type: "Huawei CPE", name: "Huawei CPE", serial: "867206040945128" }
-            ]
+                { type: "Laptop", name: "HP ProBook", serial: "5CG0462CX0", status: "Working" },
+                { type: "Charger", name: "HP Charger", serial: "N/A", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446789", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592448903", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "580174700", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446967", status: "Working" },
+                { type: "Cable", name: "Kingston USB Hub", serial: "N/A", status: "Working" },
+                { type: "Mobile", name: "Huawei P40", serial: "863725044378535", status: "Working" },
+                { type: "Mobile", name: "Huawei P40", serial: "863725044379731", status: "Working" },
+                { type: "Mobile", name: "Huawei P40", serial: "863725044539847", status: "Working" },
+                { type: "Mobile", name: "Samsung S9", serial: "354663104805962", status: "Working" },
+                { type: "Mobile", name: "Samsung S9", serial: "354663104812380", status: "Working" },
+                { type: "Mobile", name: "Huawei CPE", serial: "867206040945128", status: "Working" }
+            ],
+            rigger: { safety_belt: "Old", safety_shoe: "Old", safety_vest: "1", safety_helmet: "0", compass: "0", gloves: "1", spanner_17: "1", spanner_19: "1", inverter: "Old" }
         },
         {
             id: 4,
             name: "Saeed Iqbal",
+            remarks: "Working",
             tools: [
-                { type: "Laptop", name: "HP ProBook", serial: "5CG1152Y1V" },
-                { type: "Laptop Charger", name: "HP Charger", serial: "N/A" },
-                { type: "Laptop Bag", name: "HP Bag", serial: "N/A" },
-                { type: "Mobile", name: "Huawei P40", serial: "863725044378261" },
-                { type: "Mobile", name: "Huawei P40", serial: "863725044377792" },
-                { type: "Mobile", name: "Samsung S22", serial: "354839122746814" },
-                { type: "Mobile", name: "Samsung S22", serial: "354839122784532" },
-                { type: "Mobile", name: "Huawei Mate 30 Pro", serial: "862781041935423" },
-                { type: "SIM", name: "Zain SIM", serial: "592448269" },
-                { type: "SIM", name: "Zain SIM", serial: "592446971" },
-                { type: "SIM", name: "Zain SIM", serial: "592446902" },
-                { type: "SIM", name: "Zain SIM", serial: "592446981" },
-                { type: "USB Hub", name: "Kensington", serial: "N/A" },
-                { type: "USB Hub", name: "Anker", serial: "N/A" }
-            ]
+                { type: "Laptop", name: "HP ProBook", serial: "5CG1152Y1V", status: "Working" },
+                { type: "Charger", name: "HP Charger", serial: "N/A", status: "Working" },
+                { type: "Laptop Bag", name: "HP Bag", serial: "N/A", status: "Working" },
+                { type: "Mobile", name: "Huawei P40", serial: "863725044378261", status: "Working" },
+                { type: "Mobile", name: "Huawei P40", serial: "863725044377792", status: "Working" },
+                { type: "Mobile", name: "Samsung S22", serial: "354839122746814", status: "Working" },
+                { type: "Mobile", name: "Samsung S22", serial: "354839122784532", status: "Working" },
+                { type: "Mobile", name: "Huawei Mate 30 Pro", serial: "862781041935423", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592448269", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446971", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446902", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446981", status: "Working" },
+                { type: "Cable", name: "Kensington USB Hub", serial: "N/A", status: "Working" },
+                { type: "Cable", name: "Anker USB Hub", serial: "N/A", status: "Working" }
+            ],
+            rigger: { safety_belt: "Old", safety_shoe: "Old", safety_vest: "0", safety_helmet: "1", compass: "0", gloves: "0", spanner_17: "1", spanner_19: "1", inverter: "1" }
         },
         {
             id: 5,
             name: "Muhammad Sajawal",
+            remarks: "Working",
             tools: [
-                { type: "Laptop", name: "HP Elite book", serial: "5CG0462CY2" },
-                { type: "Laptop Charger", name: "HP Charger", serial: "N/A" },
-                { type: "Laptop Bag", name: "HP Bag", serial: "N/A" },
-                { type: "SIM", name: "Zain SIM", serial: "592448818" },
-                { type: "SIM", name: "Zain SIM", serial: "592449627" },
-                { type: "SIM", name: "Zain SIM", serial: "592448924" },
-                { type: "SIM", name: "Zain SIM", serial: "592446963" },
-                { type: "USB Hub", name: "Kensington", serial: "N/A" },
-                { type: "USB Hub", name: "Anker", serial: "N/A" },
-                { type: "Mobile", name: "Huawei P40", serial: "N/A" },
-                { type: "Mobile", name: "Samsung S22", serial: "N/A" },
-                { type: "Mobile", name: "Samsung S23", serial: "N/A" },
-                { type: "Car Inverter", name: "Inverter", serial: "N/A" }
-            ]
+                { type: "Laptop", name: "HP Elite Book", serial: "5CG0462CY2", status: "Working" },
+                { type: "Charger", name: "HP Charger", serial: "N/A", status: "Working" },
+                { type: "Laptop Bag", name: "HP Bag", serial: "N/A", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592448818", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592449627", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592448924", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446963", status: "Working" },
+                { type: "Cable", name: "Kensington USB Hub", serial: "N/A", status: "Working" },
+                { type: "Cable", name: "Anker USB Hub", serial: "N/A", status: "Working" },
+                { type: "Mobile", name: "Huawei P40", serial: "N/A", status: "Working" },
+                { type: "Mobile", name: "Samsung S22", serial: "N/A", status: "Working" },
+                { type: "Mobile", name: "Samsung S23", serial: "N/A", status: "Working" }
+            ],
+            rigger: { safety_belt: "Old", safety_shoe: "1", safety_vest: "1", safety_helmet: "1", compass: "0", gloves: "1", spanner_17: "1", spanner_19: "1", inverter: "Old" }
         },
         {
             id: 6,
             name: "Fuaad Alnakhli",
+            remarks: "Working",
             tools: [
-                { type: "Laptop", name: "HP Elite book 840 G8", serial: "5CG2138VYF" },
-                { type: "Laptop Charger", name: "65W Charger", serial: "N/A" },
-                { type: "Laptop Bag", name: "HP Bag", serial: "N/A" },
-                { type: "SIM", name: "Zain SIM", serial: "592446849" }
-            ]
+                { type: "Laptop", name: "HP Elite Book 840 G8", serial: "5CG2138VYF", status: "Working" },
+                { type: "Charger", name: "65W Charger", serial: "N/A", status: "Working" },
+                { type: "Laptop Bag", name: "HP Bag", serial: "N/A", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446849", status: "Working" }
+            ],
+            rigger: { safety_belt: "0", safety_shoe: "0", safety_vest: "0", safety_helmet: "0", compass: "0", gloves: "0", spanner_17: "0", spanner_19: "0", inverter: "0" }
         },
         {
             id: 7,
             name: "Majed AlHarbi",
+            remarks: "Working",
             tools: [
-                { type: "Laptop", name: "HP Elite book 840 G8", serial: "5CG2138WDS" },
-                { type: "Laptop Charger", name: "65W Charger", serial: "N/A" },
-                { type: "SIM", name: "Zain SIM", serial: "592448969" }
-            ]
+                { type: "Laptop", name: "HP Elite Book 840 G8", serial: "5CG2138WDS", status: "Working" },
+                { type: "Charger", name: "65W Charger", serial: "N/A", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592448969", status: "Working" }
+            ],
+            rigger: { safety_belt: "0", safety_shoe: "0", safety_vest: "0", safety_helmet: "0", compass: "0", gloves: "0", spanner_17: "0", spanner_19: "0", inverter: "0" }
+        },
+        {
+            id: 8,
+            name: "Naveed Ahmad",
+            remarks: "Need Tools Bag and Laptop Bag",
+            tools: [
+                { type: "Laptop", name: "HP Laptop", serial: "5CG2471J9M", status: "Working" },
+                { type: "Laptop Bag", name: "Tools Bag", serial: "Missing", status: "Issue" },
+                { type: "Mobile", name: "Samsung NOTE 5", serial: "352560075246733", status: "Working" },
+                { type: "Mobile", name: "Samsung NOTE 5", serial: "352560075362621", status: "Working" },
+                { type: "Mobile", name: "Samsung NOTE 5", serial: "352560075363660", status: "Working" },
+                { type: "Mobile", name: "Samsung NOTE 5", serial: "352560075363009", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446936", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446923", status: "Working" },
+                { type: "SIM", name: "Zain SIM", serial: "592446921", status: "Working" },
+                { type: "Mobile", name: "Huawei P40", serial: "863725044531463", status: "Working" },
+                { type: "Mobile", name: "Huawei P40", serial: "863725044383790", status: "Working" }
+            ],
+            rigger: { safety_belt: "Old", safety_shoe: "Old", safety_vest: "0", safety_helmet: "1", compass: "0", gloves: "0", spanner_17: "1", spanner_19: "1", inverter: "1" }
         }
     ];
 
-    let teamData = JSON.parse(localStorage.getItem('northInventorySystemV4')) || defaultTeam;
+    const riggerSchema = {
+        safety_belt: "Safety Belt", safety_shoe: "Safety Shoe", safety_vest: "Safety Vest",
+        safety_helmet: "Safety Helmet", compass: "Compass Engine", gloves: "Working Gloves",
+        spanner_17: "Spanner 17", spanner_19: "Spanner 19", inverter: "Car Inverter"
+    };
+
+    let teamData = JSON.parse(localStorage.getItem('northRegionMasterV5')) || defaultTeam;
+    let currentFilter = 'all';
     let editId = null;
-    let barChart, donutChart;
+    let chartA, chartB;
 
-    function detectConflicts() {
-        let serialMap = {};
-        let conflicts = [];
-        teamData.forEach(member => {
-            member.tools.forEach(tool => {
-                let s = tool.serial ? tool.serial.trim() : '';
-                if (s && s !== '0' && s !== 'N/A' && s !== 'NA' && s !== '') {
-                    if (!serialMap[s]) serialMap[s] = [];
-                    if (!serialMap[s].includes(member.name)) serialMap[s].push(member.name);
-                }
-            });
+    function setFilter(type) {
+        currentFilter = type;
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('bg-slate-900', 'text-white', 'bg-slate-200');
+            btn.classList.add('bg-slate-100', 'text-slate-600');
         });
-        for (let serial in serialMap) {
-            if (serialMap[serial].length > 1) {
-                conflicts.push({ serial: serial, owners: serialMap[serial] });
-            }
-        }
-        return conflicts;
-    }
-
-    function renderDashboard() {
-        const conflictBox = document.getElementById('conflictAlertSection');
-        const conflicts = detectConflicts();
-        if (conflicts.length > 0) {
-            conflictBox.classList.remove('hidden');
-            let html = '';
-            conflicts.forEach(c => {
-                html += `<div class="flex flex-wrap items-center gap-2 bg-red-50 border border-red-200 p-3 rounded-lg text-xs text-red-700">
-                    <span class="font-bold">⚠️ DUPLICATE DETECTED:</span> 
-                    <span class="bg-red-600 text-white px-2 py-0.5 rounded font-mono">${c.serial}</span> 
-                    <span>assigned to:</span> <span class="font-semibold">${c.owners.join(' & ')}</span>
-                </div>`;
-            });
-            conflictBox.innerHTML = html;
-        } else {
-            conflictBox.classList.add('hidden');
-        }
-
-        const grid = document.getElementById('teamGrid');
-        grid.innerHTML = '';
-        teamData.forEach(member => {
-            let itemsHtml = '';
-            member.tools.forEach(t => {
-                itemsHtml += `<div class="bg-gray-50 border border-gray-200 p-2 rounded-lg text-xs">
-                    <div class="font-medium text-gray-700">${t.type}: <span class="text-blue-600 font-semibold">${t.name}</span></div>
-                    <div class="text-[10px] text-gray-400 font-mono mt-0.5">S/N or IMEI: ${t.serial}</div>
-                </div>`;
-            });
-            grid.innerHTML += `<div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
-                <div class="flex justify-between items-center pb-2 border-b border-gray-100">
-                    <h4 class="font-bold text-gray-800 text-sm">${member.name}</h4>
-                    <div class="flex gap-2">
-                        <button onclick="editMember(${member.id})" class="text-blue-600 hover:text-blue-800 text-xs font-semibold cursor-pointer">Edit</button>
-                        <button onclick="deleteMember(${member.id})" class="text-red-500 hover:text-red-700 text-xs font-semibold cursor-pointer">Del</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 gap-2">${itemsHtml}</div>
-            </div>`;
-        });
-        updateCharts();
-    }
-
-    window.editMember = function(id) {
-        editId = id;
-        const member = teamData.find(m => m.id === id);
-        document.getElementById('modalTitle').innerText = "Edit Assets: " + member.name;
-        document.getElementById('memberName').value = member.name;
-        document.getElementById('memberTools').value = member.tools.map(t => `${t.type}|${t.name}|${t.serial}`).join('\n');
-        document.getElementById('memberModal').classList.remove('hidden');
-    }
-
-    window.showAddModal = function() {
-        editId = null;
-        document.getElementById('modalTitle').innerText = "Add New Team Member";
-        document.getElementById('memberName').value = '';
-        document.getElementById('memberTools').value = 'Laptop|HP Z Book|5CG2421T3F\nSIM|Zain SIM|592446843';
-        document.getElementById('memberModal').classList.remove('hidden');
-    }
-
-    window.closeModal = function() {
-        document.getElementById('memberModal').classList.add('hidden');
-    }
-
-    window.saveMember = function() {
-        const name = document.getElementById('memberName').value;
-        const toolsText = document.getElementById('memberTools').value;
-        if (!name || !toolsText) return alert("Fields cannot be empty");
-        let parsedTools = [];
-        toolsText.split('\n').forEach(line => {
-            if(line.trim()){
-                let parts = line.split('|');
-                parsedTools.push({ type: parts[0]||'Tool', name: parts[1]||'Device', serial: parts[2]||'N/A' });
-            }
-        });
-        if (editId) {
-            const index = teamData.findIndex(m => m.id === editId);
-            teamData[index].name = name;
-            teamData[index].tools = parsedTools;
-        } else {
-            teamData.push({ id: Date.now(), name, tools: parsedTools });
-        }
-        localStorage.setItem('northInventorySystemV4', JSON.stringify(teamData));
-        closeModal();
+        document.getElementById('filter-' + type).classList.replace('bg-slate-100', 'bg-slate-900');
+        document.getElementById('filter-' + type).classList.add('text-white');
         renderDashboard();
     }
 
-    window.deleteMember = function(id) {
-        if (confirm("Are you sure?")) {
-            teamData = teamData.filter(m => m.id !== id);
-            localStorage.setItem('northInventorySystemV4', JSON.stringify(teamData));
+    function detectConflicts() {
+        let map = {}; let conflicts = [];
+        teamData.forEach(m => {
+            m.tools.forEach(t => {
+                let s = t.serial ? t.serial.trim() : '';
+                if (s && s !== '0' && s !== 'N/A' && s !== 'NA' && s !== 'Missing') {
+                    if (!map[s]) map[s] = [];
+                    if (!map[s].includes(m.name)) map[s].push(m.name);
+                }
+            });
+        });
+        for (let s in map) { if (map[s].length > 1) conflicts.push({ serial: s, owners: map[s] }); }
+        return conflicts;
+    }
+
+    function toggleAssetStatus(memberId, assetSerial) {
+        const mIdx = teamData.findIndex(m => m.id === memberId);
+        const tIdx = teamData[mIdx].tools.findIndex(t => t.serial === assetSerial);
+        if(tIdx !== -1) {
+            teamData[mIdx].tools[tIdx].status = teamData[mIdx].tools[tIdx].status === 'Working' ? 'Issue' : 'Working';
+            localStorage.setItem('northRegionMasterV5', JSON.stringify(teamData));
             renderDashboard();
         }
     }
 
+    function renderDashboard() {
+        const query = document.getElementById('globalSearch').value.toLowerCase();
+        const grid = document.getElementById('teamGrid');
+        grid.innerHTML = '';
+        
+        let cSims = 0, cMobs = 0, cIssues = 0;
+
+        // Conflict Banner Logic
+        const conflicts = detectConflicts();
+        const cBox = document.getElementById('conflictAlertSection');
+        if (conflicts.length > 0) {
+            cBox.classList.remove('hidden');
+            let html = '';
+            conflicts.forEach(c => {
+                html += `<div class="bg-red-50 border border-red-200 p-3 rounded-xl text-xs text-red-700 font-medium flex items-center gap-2 shadow-xs">
+                    <span>⚠️ <b>INTELLIGENCE CONFLICT:</b> ID/Serial </span>
+                    <span class="bg-red-600 text-white font-mono px-2 py-0.5 rounded font-bold">${c.serial}</span>
+                    <span>Cross-Allocated to: <b>${c.owners.join(' & ')}</b></span>
+                </div>`;
+            });
+            cBox.innerHTML = html;
+        } else { cBox.classList.add('hidden'); }
+
+        teamData.forEach(member => {
+            // Compute Global Counts
+            member.tools.forEach(t => {
+                if(t.type === 'SIM') cSims++;
+                if(t.type === 'Mobile') cMobs++;
+                if(t.status === 'Issue') cIssues++;
+            });
+            Object.values(member.rigger).forEach(v => { if(v === 'Old' || v === 'Missing') cIssues++; });
+            if(member.remarks.toLowerCase().includes('need') || member.remarks.toLowerCase().includes('missing')) cIssues++;
+
+            // Match filters & search queries
+            let matchesSearch = member.name.toLowerCase().includes(query) || member.remarks.toLowerCase().includes(query);
+            let hasTelecom = false; let hasRigger = false; let hasIssue = false;
+
+            if(member.remarks.toLowerCase().includes('need')) hasIssue = true;
+
+            let telecomHtml = '';
+            member.tools.forEach(t => {
+                if(t.serial.toLowerCase().includes(query) || t.name.toLowerCase().includes(query) || t.type.toLowerCase().includes(query)) matchesSearch = true;
+                if(['SIM','Mobile','Laptop'].includes(t.type)) hasTelecom = true;
+                if(t.status === 'Issue') hasIssue = true;
+
+                let badgeColor = t.status === 'Working' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200';
+                telecomHtml += `<div class="flex justify-between items-center bg-slate-50 border border-slate-200/60 p-2 rounded-lg text-xs">
+                    <div>
+                        <span class="font-bold text-slate-500">${t.type}:</span> 
+                        <span class="text-slate-800 font-semibold">${t.name}</span>
+                        <div class="text-[10px] text-slate-400 font-mono mt-0.5">S/N: ${t.serial}</div>
+                    </div>
+                    <button onclick="toggleAssetStatus(${member.id}, '${t.serial}')" class="px-2 py-0.5 border rounded font-bold text-[10px] cursor-pointer transition ${badgeColor}">${t.status}</button>
+                </div>`;
+            });
+
+            let riggerHtml = '';
+            for(let key in member.rigger) {
+                let val = member.rigger[key];
+                if(val !== "0") {
+                    hasRigger = true;
+                    if(val === 'Old' || val === 'Missing') hasIssue = true;
+                    let badgeClass = (val === 'Old' || val === 'Missing') ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-slate-100 text-slate-700 font-semibold';
+                    riggerHtml += `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] border border-slate-200 ${badgeClass}">
+                        ${riggerSchema[key]}: ${val}
+                    </span>`;
+                }
+            }
+
+            // Route view filter filters
+            if(currentFilter === 'telecom' && !hasTelecom) return;
+            if(currentFilter === 'rigger' && !hasRigger) return;
+            if(currentFilter === 'issues' && !hasIssue) return;
+            if(!matchesSearch) return;
+
+            let cardBorder = hasIssue ? 'border-red-300 ring-2 ring-red-500/5' : 'border-slate-200';
+
+            grid.innerHTML += `<div class="bg-white p-5 rounded-2xl shadow-sm border ${cardBorder} flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex justify-between items-start pb-2 border-b border-slate-100">
+                        <div>
+                            <h4 class="font-black text-slate-900 text-sm tracking-tight">${member.name}</h4>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">System ID: #N-${member.id}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editMember(${member.id})" class="text-blue-600 hover:text-blue-800 text-xs font-bold cursor-pointer">Edit</button>
+                            <button onclick="deleteMember(${member.id})" class="text-slate-300 hover:text-red-600 text-xs font-bold cursor-pointer transition">Del</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">📡 IT & Telecom System</div>
+                        <div class="grid grid-cols-1 gap-1.5">${telecomHtml || '<span class="text-xs text-slate-400 italic">No Core Hardware Assigned</span>'}</div>
+                    </div>
+
+                    <div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">🧰 Rigger & Safety Assets</div>
+                        <div class="flex flex-wrap gap-1">${riggerHtml || '<span class="text-xs text-slate-400 italic">No Field Gears Logged</span>'}</div>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 mt-auto">
+                    <div class="text-[9px] font-bold text-slate-400 uppercase">System Remarks / Alert Status</div>
+                    <p class="text-xs font-semibold ${hasIssue ? 'text-red-600' : 'text-slate-600'} mt-0.5">${member.remarks}</p>
+                </div>
+            </div>`;
+        });
+
+        // Set Top Display Metrics
+        document.getElementById('statMembers').innerText = teamData.length;
+        document.getElementById('statSims').innerText = cSims;
+        document.getElementById('statMobiles').innerText = cMobs;
+        document.getElementById('statIssues').innerText = cIssues;
+
+        updateCharts();
+    }
+
     function updateCharts() {
-        const ctxBar = document.getElementById('barChart');
-        const ctxDonut = document.getElementById('donutChart');
-        if (barChart) barChart.destroy();
-        if (donutChart) donutChart.destroy();
-        let counts = { SIM: 0, Mobile: 0, Laptop: 0, Others: 0 };
-        teamData.forEach(m => m.tools.forEach(t => {
-            let type = t.type.toUpperCase();
-            if(type.includes('SIM')) counts.SIM++;
-            else if(type.includes('MOBILE')) counts.Mobile++;
-            else if(type.includes('LAPTOP')) counts.Laptop++;
-            else counts.Others++;
-        }));
-        const dataVals = [counts.SIM, counts.Mobile, counts.Laptop, counts.Others];
-        barChart = new Chart(ctxBar, {
+        let models = {};
+        let riggerCounts = { "Safety Belt": 0, "Safety Shoe": 0, "Safety Vest": 0, "Safety Helmet": 0, "Car Inverter": 0 };
+
+        teamData.forEach(m => {
+            m.tools.forEach(t => {
+                if(['Mobile', 'Laptop'].includes(t.type)) {
+                    models[t.name] = (models[t.name] || 0) + 1;
+                }
+            });
+            if(m.rigger.safety_belt !== "0") riggerCounts["Safety Belt"]++;
+            if(m.rigger.safety_shoe !== "0") riggerCounts["Safety Shoe"]++;
+            if(m.rigger.safety_vest !== "0") riggerCounts["Safety Vest"]++;
+            if(m.rigger.safety_helmet !== "0") riggerCounts["Safety Helmet"]++;
+            if(m.rigger.inverter !== "0") riggerCounts["Car Inverter"]++;
+        });
+
+        // Chart A: Hardware Models Breakdown
+        const ctxA = document.getElementById('modelChart').getContext('2d');
+        if(chartA) chartA.destroy();
+        chartA = new Chart(ctxA, {
             type: 'bar',
             data: {
-                labels: ['SIM Cards', 'Mobiles', 'Laptops', 'Others'],
-                datasets: [{ data: dataVals, backgroundColor: ['#3B82F6', '#EC4899', '#8B5CF6', '#F59E0B'], barThickness: 25 }]
+                labels: Object.keys(models),
+                datasets: [{
+                    label: 'Units Distributed',
+                    data: Object.values(models),
+                    backgroundColor: ['#3B82F6', '#EC4899', '#8B5CF6', '#10B981', '#F59E0B', '#64748B'],
+                    borderRadius: 6, barThickness: 20
+                }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
-        donutChart = new Chart(ctxDonut, {
+
+        // Chart B: Rigger Tools Matrix
+        const ctxB = document.getElementById('riggerChart').getContext('2d');
+        if(chartB) chartB.destroy();
+        chartB = new Chart(ctxB, {
             type: 'doughnut',
             data: {
-                labels: ['SIM Cards', 'Mobiles', 'Laptops', 'Others'],
-                datasets: [{ data: dataVals, backgroundColor: ['#3B82F6', '#EC4899', '#8B5CF6', '#F59E0B'] }]
+                labels: Object.keys(riggerCounts),
+                datasets: [{
+                    data: Object.values(riggerCounts),
+                    backgroundColor: ['#3B82F6', '#EC4899', '#8B5CF6', '#F59E0B', '#10B981']
+                }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'right' } }, cutout: '70%' }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } }, cutout: '70%' }
         });
     }
+
+    window.showAddModal = function() {
+        editId = null;
+        document.getElementById('modalTitle').innerText = "Map New Regional Field Asset Set";
+        document.getElementById('memberName').value = '';
+        document.getElementById('memberRemarks').value = 'Working';
+        document.getElementById('memberTools').value = 'Laptop|HP ProBook|5CGXXXXXX|Working\nSIM|Zain SIM|592XXXXXX|Working';
+        buildRiggerChecklist({ safety_belt: "0", safety_shoe: "0", safety_vest: "0", safety_helmet: "0", compass: "0", gloves: "0", spanner_17: "0", spanner_19: "0", inverter: "0" });
+        document.getElementById('memberModal').classList.remove('hidden');
+    }
+
+    window.editMember = function(id) {
+        editId = id;
+        const m = teamData.find(item => item.id === id);
+        document.getElementById('modalTitle').innerText = "Refactor Resource Matrix: " + m.name;
+        document.getElementById('memberName').value = m.name;
+        document.getElementById('memberRemarks').value = m.remarks;
+        document.getElementById('memberTools').value = m.tools.map(t => `${t.type}|${t.name}|${t.serial}|${t.status}`).join('\n');
+        buildRiggerChecklist(m.rigger);
+        document.getElementById('memberModal').classList.remove('hidden');
+    }
+
+    function buildRiggerChecklist(data) {
+        const wrapper = document.getElementById('riggerChecklistForm');
+        wrapper.innerHTML = '';
+        for(let key in riggerSchema) {
+            let currentVal = data[key] || "0";
+            wrapper.innerHTML += `<div>
+                <label class="block text-[11px] font-medium text-slate-500 mb-0.5">${riggerSchema[key]}</label>
+                <select id="rig-${key}" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-semibold">
+                    <option value="0" ${currentVal==='0'?'selected':''}>0 (None)</option>
+                    <option value="1" ${currentVal==='1'?'selected':''}>1 (Active)</option>
+                    <option value="Old" ${currentVal==='Old'?'selected':''}>Old State</option>
+                    <option value="Missing" ${currentVal==='Missing'?'selected':''}>Missing</option>
+                </select>
+            </div>`;
+        }
+    }
+
+    window.saveMember = function() {
+        const name = document.getElementById('memberName').value;
+        const remarks = document.getElementById('memberRemarks').value;
+        const txt = document.getElementById('memberTools').value;
+        if(!name) return alert("Employee Identity Context Missing");
+
+        let parsedTools = [];
+        txt.split('\n').forEach(line => {
+            if(line.trim()) {
+                let p = line.split('|');
+                parsedTools.push({ type: p[0]||'Tool', name: p[1]||'Device', serial: p[2]||'N/A', status: p[3]||'Working' });
+            }
+        });
+
+        let riggerObj = {};
+        for(let key in riggerSchema) { riggerObj[key] = document.getElementById('rig-'+key).value; }
+
+        if(editId) {
+            let idx = teamData.findIndex(m => m.id === editId);
+            teamData[idx] = { id: editId, name, remarks, tools: parsedTools, rigger: riggerObj };
+        } else {
+            teamData.push({ id: Date.now(), name, remarks, tools: parsedTools, rigger: riggerObj });
+        }
+
+        localStorage.setItem('northRegionMasterV5', JSON.stringify(teamData));
+        closeModal(); renderDashboard();
+    }
+
+    window.deleteMember = function(id) {
+        if(confirm("Purge resource from operational registers?")) {
+            teamData = teamData.filter(m => m.id !== id);
+            localStorage.setItem('northRegionMasterV5', JSON.stringify(teamData));
+            renderDashboard();
+        }
+    }
+
+    window.closeModal = function() { document.getElementById('memberModal').classList.add('hidden'); }
+
+    window.exportToCSV = function() {
+        let csv = 'Employee Name,Asset Category,Model/Tool Name,Serial/IMEI/Quantity,Status,Remarks\n';
+        teamData.forEach(m => {
+            m.tools.forEach(t => {
+                csv += `"${m.name}","Telecom Hardware","${t.name}","${t.serial}","${t.status}","${m.remarks}"\n`;
+            });
+            for(let key in m.rigger) {
+                if(m.rigger[key] !== "0") {
+                    csv += `"${m.name}","Rigger Safety","${riggerSchema[key]}","${m.rigger[key]}","Logged","${m.remarks}"\n`;
+                }
+            }
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", "North_Region_Unified_Inventory.csv");
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
     window.onload = renderDashboard;
     </script>
 </body>
