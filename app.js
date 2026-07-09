@@ -1,14 +1,14 @@
-// 1. AAPKI INVENTORY KA TOTAL DATA (GRAPH KE LIYE)
-const labels = ['Laptop', 'Sim', 'Mobile', 'Cable/Hub', 'Charger/Bag/CPE'];
-const counts = [3, 4, 7, 2, 4]; // Aapki file ke actual counts
-const colors = ['#8B5CF6', '#3B82F6', '#EC4899', '#84CC16', '#F59E0B'];
+// 1. NORTH INVENTORY EXCEL DATA COUNTS
+const labels = ['SIM Cards', 'Mobile Phones', 'Laptops', 'Chargers/Bags', 'Cables/Hubs/CPE'];
+const counts = [18, 14, 7, 12, 10]; 
+const colors = ['#3B82F6', '#EC4899', '#8B5CF6', '#F59E0B', '#10B981'];
 
-// Bar Chart Setup
+// Bar Chart
 new Chart(document.getElementById('barChart'), {
     type: 'bar',
     data: {
         labels: labels,
-        datasets: [{ data: counts, backgroundColor: colors, barThickness: 22 }]
+        datasets: [{ data: counts, backgroundColor: colors, barThickness: 25 }]
     },
     options: {
         responsive: true,
@@ -17,7 +17,7 @@ new Chart(document.getElementById('barChart'), {
     }
 });
 
-// Donut Chart Setup
+// Donut Chart
 new Chart(document.getElementById('donutChart'), {
     type: 'doughnut',
     data: {
@@ -26,7 +26,7 @@ new Chart(document.getElementById('donutChart'), {
     },
     options: {
         responsive: true,
-        plugins: { legend: { position: 'top' } },
+        plugins: { legend: { position: 'right' } },
         cutout: '70%'
     }
 });

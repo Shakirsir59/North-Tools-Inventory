@@ -3,77 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>North Tools Inventory Dashboard</title>
+    <title>North Region Tools Inventory</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-50 p-6 font-sans">
+<body class="bg-gray-100 p-6 font-sans">
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <h1 class="text-xl font-bold text-gray-800">📋 North Region Tools Inventory</h1>
-            <span class="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">Live Monitoring</span>
+        <!-- HEADER -->
+        <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">📋 North Region Tools Inventory Dashboard</h1>
+                <p class="text-xs text-gray-500">Live Asset Tracking & Management</p>
+            </div>
+            <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">Active</span>
         </div>
 
+        <!-- CHARTS SECTION -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <canvas id="barChart" class="h-64"></canvas>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-600 mb-2">Inventory Stock Level</h3>
+                <canvas id="barChart" class="max-h-64"></canvas>
             </div>
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <canvas id="donutChart" class="h-64"></canvas>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-600 mb-2">Product Share %</h3>
+                <canvas id="donutChart" class="max-h-64"></canvas>
             </div>
         </div>
 
+        <!-- TEAM GRID -->
         <div>
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-4">NORTH TEAM MEMBERS & ASSETS</div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">NORTH TEAM INVENTORY LIST</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:border-blue-500 transition">
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">MM</div>
-                        <div><h4 class="font-bold text-gray-800 text-sm">Majid Mubarak Mohammed</h4><p class="text-xs text-gray-400">6 Tools Assigned</p></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1 text-[10px] font-semibold">
-                        <span class="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">Laptop x1</span>
-                        <span class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Zain Sim x2</span>
-                        <span class="bg-green-50 text-green-700 px-1.5 py-0.5 rounded">Ethernet Cable x1</span>
-                        <span class="bg-yellow-50 text-yellow-700 px-1.5 py-0.5 rounded">Charger & Bag</span>
-                    </div>
-                </div>
-
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:border-blue-500 transition">
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">AM</div>
-                        <div><h4 class="font-bold text-gray-800 text-sm">Amer Mohammed</h4><p class="text-xs text-gray-400">5 Tools Assigned</p></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1 text-[10px] font-semibold">
-                        <span class="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">Laptop x1</span>
-                        <span class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Zain Sim x2</span>
-                        <span class="bg-yellow-50 text-yellow-700 px-1.5 py-0.5 rounded">Charger & Bag</span>
+                <!-- Card 1: Majid Mubarak -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="font-bold text-gray-800 text-sm mb-1">Majid Mubarak Mohammed</div>
+                    <p class="text-xs text-gray-400 mb-3">6 Tools Assigned</p>
+                    <div class="flex flex-wrap gap-1 text-[10px] font-medium">
+                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">HP Z Book Laptop</span>
+                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Zain SIM x2</span>
+                        <span class="bg-green-50 text-green-700 px-2 py-0.5 rounded">Ethernet Cable</span>
+                        <span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded">HP Charger & Bag</span>
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:border-blue-500 transition">
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-sm">YN</div>
-                        <div><h4 class="font-bold text-gray-800 text-sm">Yasir Nadeem</h4><p class="text-xs text-gray-400">6 Tools Assigned</p></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1 text-[10px] font-semibold">
-                        <span class="bg-pink-50 text-pink-700 px-1.5 py-0.5 rounded">Huawei Mobile x3</span>
-                        <span class="bg-red-50 text-red-700 px-1.5 py-0.5 rounded">Samsung S9 x2</span>
-                        <span class="bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded">Huawei CPE x1</span>
-                        <span class="bg-green-50 text-green-700 px-1.5 py-0.5 rounded">USB Hub x1</span>
+                <!-- Card 2: Amer Mohammed -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="font-bold text-gray-800 text-sm mb-1">Amer Mohammed</div>
+                    <p class="text-xs text-gray-400 mb-3">5 Tools Assigned</p>
+                    <div class="flex flex-wrap gap-1 text-[10px] font-medium">
+                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">HP Z Book Laptop</span>
+                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Zain SIM x2</span>
+                        <span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded">Charger & Bag</span>
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:border-blue-500 transition">
-                    <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">SI</div>
-                        <div><h4 class="font-bold text-gray-800 text-sm">Saeed Iqbal</h4><p class="text-xs text-gray-400">4 Tools Assigned</p></div>
+                <!-- Card 3: Yasir Nadeem -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-pink-500">
+                    <div class="font-bold text-gray-800 text-sm mb-1">Yasir Nadeem</div>
+                    <p class="text-xs text-gray-400 mb-3">15 Tools Assigned</p>
+                    <div class="flex flex-wrap gap-1 text-[10px] font-medium">
+                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">HP ProBook</span>
+                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Zain SIM x4</span>
+                        <span class="bg-pink-50 text-pink-700 px-2 py-0.5 rounded">Huawei Mobile x3</span>
+                        <span class="bg-red-50 text-red-700 px-2 py-0.5 rounded">Samsung S9 x2</span>
+                        <span class="bg-teal-50 text-teal-700 px-2 py-0.5 rounded">Huawei CPE</span>
+                        <span class="bg-orange-50 text-orange-700 px-2 py-0.5 rounded">USB Hub & Inverter</span>
                     </div>
-                    <div class="flex flex-wrap gap-1 text-[10px] font-semibold">
-                        <span class="bg-pink-50 text-pink-700 px-1.5 py-0.5 rounded">Huawei P40 x2</span>
-                        <span class="bg-red-50 text-red-700 px-1.5 py-0.5 rounded">Samsung S22 x2</span>
+                </div>
+
+                <!-- Card 4: Saeed Iqbal -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="font-bold text-gray-800 text-sm mb-1">Saeed Iqbal</div>
+                    <p class="text-xs text-gray-400 mb-3">14 Tools Assigned</p>
+                    <div class="flex flex-wrap gap-1 text-[10px] font-medium">
+                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">HP ProBook</span>
+                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Zain SIM x4</span>
+                        <span class="bg-pink-50 text-pink-700 px-2 py-0.5 rounded">Huawei P40 x2</span>
+                        <span class="bg-red-50 text-red-700 px-2 py-0.5 rounded">Samsung S22 x2</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded">Mate 30 Pro</span>
+                        <span class="bg-orange-50 text-orange-700 px-2 py-0.5 rounded">USB Hubs / Bag</span>
+                    </div>
+                </div>
+
+                <!-- Card 5: Muhammad Sajawal -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="font-bold text-gray-800 text-sm mb-1">Muhammad Sajawal</div>
+                    <p class="text-xs text-gray-400 mb-3">14 Tools Assigned</p>
+                    <div class="flex flex-wrap gap-1 text-[10px] font-medium">
+                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">HP EliteBook</span>
+                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Zain SIM x4</span>
+                        <span class="bg-pink-50 text-pink-700 px-2 py-0.5 rounded">Huawei P40 x2</span>
+                        <span class="bg-red-50 text-red-700 px-2 py-0.5 rounded">Samsung S22 & S23</span>
+                        <span class="bg-orange-50 text-orange-700 px-2 py-0.5 rounded">USB Hubs & Inverter</span>
+                    </div>
+                </div>
+
+                <!-- Card 6: Fuaad Alnakhli -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="font-bold text-gray-800 text-sm mb-1">Fuaad Alnakhli</div>
+                    <p class="text-xs text-gray-400 mb-3">4 Tools Assigned</p>
+                    <div class="flex flex-wrap gap-1 text-[10px] font-medium">
+                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">HP EliteBook 840</span>
+                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Zain SIM x1</span>
+                        <span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded">Charger & Bag</span>
+                    </div>
+                </div>
+
+                <!-- Card 7: Majed AlHarbi -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="font-bold text-gray-800 text-sm mb-1">Majed AlHarbi</div>
+                    <p class="text-xs text-gray-400 mb-3">3 Tools Assigned</p>
+                    <div class="flex flex-wrap gap-1 text-[10px] font-medium">
+                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">HP EliteBook 840</span>
+                        <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Zain SIM x1</span>
+                        <span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded">HP Charger</span>
                     </div>
                 </div>
 
