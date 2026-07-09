@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>North Region Inventory Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 p-6 font-sans">
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- TOP CONTROL INTERFACE -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">🛠️ North Region Inventory System</h1>
+                <p class="text-xs text-gray-500">Add, Edit, and Shuffle Team Tools Dynamically</p>
+            </div>
+            
+            <!-- ACTION BUTTONS -->
+            <div class="flex gap-2">
+                <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow transition cursor-pointer">
+                    + Add New Member
+                </button>
+            </div>
+        </div>
+
+        <!-- CHARTS SECTION -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Live Inventory Stock</h3>
+                <canvas id="barChart" class="max-h-56"></canvas>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Product Share %</h3>
+                <canvas id="donutChart" class="max-h-56"></canvas>
+            </div>
+        </div>
+
+        <!-- MAIN TEAM MANAGEMENT INTERFACE -->
+        <div>
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">TEAM MEMBERS & ASSIGNED ASSETS</h2>
+            <div id="teamGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Cards dynamically loaded by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- DYNAMIC POPUP MODAL FOR ADD/EDIT -->
+    <div id="memberModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full space-y-4 shadow-lg">
+            <h3 id="modalTitle" class="text-base font-bold text-gray-800">Add Team Member</h3>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Member Full Name</label>
+                    <input type="text" id="memberName" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-blue-500" placeholder="e.g. Majid Mubarak">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Assigned Tools & Quantity</label>
+                    <textarea id="memberTools" rows="3" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-blue-500" placeholder="e.g. HP Laptop x1, Zain SIM x2, Huawei Mobile x3"></textarea>
+                    <p class="text-[10px] text-gray-400 mt-1">Separate items with commas (,)</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg transition cursor-pointer">Cancel</button>
+                <button onclick="saveMember()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition cursor-pointer">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
